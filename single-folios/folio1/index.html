@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian Monolith Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&family=Space+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --slab: #0a0a0a;
+            --edge-highlight: rgba(255, 255, 255, 0.08);
+            --edge-shadow: rgba(0, 0, 0, 0.8);
+            --accent: #ffffff;
+            --text-dim: #666;
+            --transition: cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--accent);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.2;
+        }
+
+        /* Noise Texture Overlay */
+        .noise {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0.04;
+            z-index: 9999;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Custom Cursor */
+        #cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            mix-blend-mode: difference;
+            transition: transform 0.15s var(--transition);
+        }
+
+        /* Layout Structure */
+        .viewport {
+            padding: 4vw;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20vh;
+        }
+
+        .mono {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-dim);
+        }
+
+        /* The Obsidian Relief Text */
+        .hero-title {
+            font-size: clamp(4rem, 15vw, 18rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            margin-left: -0.07em;
+            position: relative;
+            display: inline-block;
+            background: linear-gradient(135deg, #fff 0%, #333 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+        }
+
+        /* The Monolithic Slab */
+        .project-grid {
+            margin-top: 15vh;
+            display: flex;
+            flex-direction: column;
+            gap: 2px; /* Precision gap */
+            background: rgba(255,255,255,0.05); /* Joint color */
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .project-item {
+            position: relative;
+            background: var(--bg);
+            padding: 4rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            transition: all 0.6s var(--transition);
+            overflow: hidden;
+        }
+
+        .project-item::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 1px 0 var(--edge-highlight);
+            pointer-events: none;
+        }
+
+        .project-item:hover {
+            background: #0d0d0d;
+            transform: scale(0.995);
+            z-index: 10;
+        }
+
+        .project-item:hover .project-title {
+            transform: translateX(20px);
+            color: #fff;
+        }
+
+        .project-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #222;
+            transition: all 0.6s var(--transition);
+        }
+
+        .project-meta {
+            text-align: right;
+        }
+
+        /* Chiseled Details */
+        .chisel-box {
+            border: 1px solid var(--edge-shadow);
+            background: var(--slab);
+            box-shadow: 
+                inset 1px 1px 0px var(--edge-highlight),
+                5px 5px 20px rgba(0,0,0,0.4);
+            padding: 2rem;
+            margin-top: 10vh;
+            max-width: 500px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #00ff00;
+            display: inline-block;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        footer {
+            margin-top: 20vh;
+            padding-bottom: 5vh;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #111;
+            padding-top: 2rem;
+        }
+
+        /* Entry Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: revealIn 1.2s var(--transition) forwards;
+        }
+
+        @keyframes revealIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+
+        @media (max-width: 768px) {
+            .project-item {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 2rem 1rem;
+            }
+            .project-meta { text-align: left; }
+            .hero-title { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cursor"></div>
+    <div class="noise"></div>
+
+    <main class="viewport">
+        <nav class="reveal">
+            <div class="mono">M. DESIGN / ARCHIVE</div>
+            <div class="mono">TOKYO, JP — 2024</div>
+        </nav>
+
+        <section class="hero">
+            <h1 class="hero-title reveal delay-1">SILIC<br>ONE.</h1>
+            <div class="chisel-box reveal delay-2">
+                <p class="mono" style="margin-bottom: 1rem;"><span class="status-dot"></span> AVAILABILITY: OPEN</p>
+                <p style="color: var(--text-dim); font-size: 0.9rem; letter-spacing: 0.02em;">
+                    Building singular digital experiences through monolithic design and obsidian-grade precision. 
+                    Specializing in high-fidelity interfaces for technical brands.
+                </p>
+            </div>
+        </section>
+
+        <section class="project-grid reveal delay-2">
+            <!-- Project 01 -->
+            <div class="project-item">
+                <span class="mono">01/04</span>
+                <span class="project-title">NEURALIS</span>
+                <div class="project-meta">
+                    <span class="mono">AI INFRASTRUCTURE</span>
+                </div>
+            </div>
+
+            <!-- Project 02 -->
+            <div class="project-item">
+                <span class="mono">02/04</span>
+                <span class="project-title">AXON-9</span>
+                <div class="project-meta">
+                    <span class="mono">CRYPTO PROTOCOL</span>
+                </div>
+            </div>
+
+            <!-- Project 03 -->
+            <div class="project-item">
+                <span class="mono">03/04</span>
+                <span class="project-title">KINETIC</span>
+                <div class="project-meta">
+                    <span class="mono">MOTION ENGINE</span>
+                </div>
+            </div>
+
+            <!-- Project 04 -->
+            <div class="project-item">
+                <span class="mono">04/04</span>
+                <span class="project-title">VOID OS</span>
+                <div class="project-meta">
+                    <span class="mono">EXPERIMENTAL UI</span>
+                </div>
+            </div>
+        </section>
+
+        <footer class="reveal">
+            <div class="mono">© 2024 ALL RIGHTS RESERVED</div>
+            <div class="mono">BACK TO TOP ↑</div>
+        </footer>
+    </main>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            cursor.style.transform = `translate3d(${x - 10}px, ${y - 10}px, 0)`;
+        });
+
+        document.querySelectorAll('a, .project-item').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.style.transform += ' scale(2.5)';
+                cursor.style.background = 'white';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.style.transform = cursor.style.transform.replace(' scale(2.5)', '');
+            });
+        });
+
+        // Smooth Scroll Parallax for Relief Effect
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const title = document.querySelector('.hero-title');
+            title.style.transform = `translateY(${scrolled * 0.1}px)`;
+            
+            const slabs = document.querySelectorAll('.project-item');
+            slabs.forEach((slab, index) => {
+                const speed = 0.05 * (index + 1);
+                slab.style.backgroundPosition = `center ${scrolled * speed}px`;
+            });
+        });
+
+        // Intersection Observer for Reveal
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section, footer').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
+

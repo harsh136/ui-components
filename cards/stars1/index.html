@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meteors Demo</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #000;
+            /* Dark background for contrast */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            /* Prevent scrollbars from meteors */
+        }
+
+        /* Card Container */
+        .card-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 30rem;
+            /* max-w-xs */
+            margin: 20px;
+        }
+        
+
+        /* Main Card */
+        .card {
+            position: relative;
+            height: 100%;
+            background-color: #111827;
+            /* bg-gray-900 */
+            border: 1px solid #1f2937;
+            /* border-gray-800 */
+            padding: 2rem 1rem;
+            /* px-4 py-8 */
+            border-radius: 1rem;
+            /* rounded-2xl */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start;
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.5), 
+                0 8px 10px -6px rgba(0, 0, 0, 0.5),
+                inset 0 1px 1px rgba(255,255,255,0.1); /* Inner rim light */
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            /* shadow-xl */
+            z-index: 10;
+        }
+
+        /* Typography */
+        .card-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+            /* text-xl */
+            color: #ffffff;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 50;
+        }
+
+        .card-description {
+            font-weight: 400;
+            font-size: 1rem;
+            /* text-base */
+            color: #64748b;
+            /* text-slate-500 */
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 50;
+            line-height: 1.5;
+        }
+
+        /* Meteor Animation Styles */
+        .meteors-container {
+            position: absolute;
+            /* Ensure they are contained within the relative parent */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            /* Let clicks pass through to buttons */
+            z-index: 20;
+            /* Behind text (z-50) but inside card */
+        }
+
+        .meteor {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: 3px;
+            /* slightly larger core for glow */
+            width: 3px;
+            /* slightly larger core for glow */
+            border-radius: 9999px;
+            /* bright core gradient to look luminous */
+            background: radial-gradient(circle at 30% 30%, #e6f2ff 0%, #a3c7ff 40%, #5b8cff 70%, #2b6cff 100%);
+            /* layered glow */
+            box-shadow:
+                0 0 6px 2px rgba(99,102,241,0.9),
+                0 0 18px 6px rgba(99,102,241,0.22),
+                inset 0 0 2px rgba(255,255,255,0.6);
+            filter: drop-shadow(0 0 6px rgba(99,102,241,0.6));
+            mix-blend-mode: screen;
+            transform: rotate(215deg);
+            opacity: 0;
+            /* Start invisible */
+            animation: meteor-effect linear infinite, meteor-glow 1.6s ease-in-out infinite;
+            will-change: transform, opacity, box-shadow;
+        }
+
+        /* The trail of the meteor */
+        .meteor::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 120px;
+            height: 2px;
+             background: linear-gradient(90deg, #ffffff, #a5b4fc, #6366f1, transparent);
+            filter: blur(3px);
+            z-index: -1;
+            opacity: 0.9;
+        }
+
+        @keyframes meteor-effect {
+            0% {
+                transform: rotate(215deg) translateX(0);
+                opacity: 1;
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(215deg) translateX(-500px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card-wrapper">
+        <!-- Background Glow -->
+
+        <div class="card">
+            <!-- Icon -->
+
+            <!-- Content -->
+            <h1 class="card-title">Meteors because they're cool</h1>
+
+            <p class="card-description">
+                I don't know what to write so I'll just paste something
+                cool here. One more sentence because lorem ipsum is just
+                unacceptable. Won't ChatGPT the shit out of this.
+            </p>
+
+            <!-- Meteors will be injected here by JS -->
+            <div class="meteors-container" id="meteors-container"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('meteors-container');
+            const meteorCount = 20;
+
+            for (let i = 0; i < meteorCount; i++) {
+                const meteor = document.createElement('span');
+                meteor.classList.add('meteor');
+
+                // Calculate random positions and delays identical to the React logic
+                // left: Math.floor(Math.random() * (400 - -400) + -400) + 'px'
+                const left = Math.floor(Math.random() * 800 - 400) + 'px';
+
+                // animationDelay: Math.random() * (0.8 - 0.2) + 0.2 + 's'
+                const delay = (Math.random() * 0.6 + 0.2).toFixed(2) + 's';
+
+                // animationDuration: Math.floor(Math.random() * (10 - 2) + 2) + 's'
+                const duration = Math.floor(Math.random() * 8 + 2) + 's';
+
+                // Apply inline styles
+                meteor.style.left = left;
+                meteor.style.animationDelay = delay;
+                meteor.style.animationDuration = duration;
+                // In the original code top is 0 (relative to top-1/2 from CSS)
+                meteor.style.top = '0px';
+
+                container.appendChild(meteor);
+            }
+        });
+    </script>
+
+</body>
+
+</html>

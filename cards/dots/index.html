@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frosted Silica Webbing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050506;
+            --card-bg: rgba(15, 15, 18, 0.7);
+            --accent-color: #ffffff;
+            --muted-color: #3d3d42;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --grain-opacity: 0.03;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            color: var(--accent-color);
+        }
+
+        /* The Frosted Silica Card Container */
+        .glass-container {
+            position: relative;
+            width: 440px;
+            height: 640px;
+            background: var(--card-bg);
+            border-radius: 32px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(24px) saturate(180%);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 
+                        inset 0 0 20px rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: cardReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardReveal {
+            from { opacity: 0; transform: translateY(40px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Texture Overlays */
+        .grain-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+            opacity: var(--grain-opacity);
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3ExternalIcon%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Canvas Layout */
+        #network-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* UI Elements */
+        .ui-layer {
+            position: relative;
+            z-index: 10;
+            padding: 40px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted-color);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 10px;
+            border-radius: 4px;
+            width: fit-content;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 32px;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            margin-top: 12px;
+            background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.4) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .data-readout {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--muted-color);
+            line-height: 1.6;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #fff;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        .cta-btn {
+            pointer-events: auto;
+            background: #fff;
+            color: #000;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-container">
+        <div class="grain-overlay"></div>
+        
+        <canvas id="network-canvas"></canvas>
+
+        <div class="ui-layer">
+            <div class="header">
+                <span class="tag">System.Nexus.01</span>
+                <h1>Silica<br>Webbing</h1>
+            </div>
+
+            <div class="footer">
+                <div class="data-readout">
+                    <div><span class="status-dot"></span>ACTIVE_NODES: <span id="node-count">0</span></div>
+                    <div>LATENCY: 0.002ms</div>
+                    <div>COORDS: <span id="mouse-coords">0,0</span></div>
+                </div>
+                <button class="cta-btn">Initialize</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+        const nodeCountDisplay = document.getElementById('node-count');
+        const coordsDisplay = document.getElementById('mouse-coords');
+
+        let width, height;
+        let dots = [];
+        const spacing = 28;
+        const mouse = { x: -1000, y: -1000, active: false };
+        const radius = 180;
+
+        class Dot {
+            constructor(x, y) {
+                this.baseX = x;
+                this.baseY = y;
+                this.size = 1.5;
+                this.color = 'rgba(61, 61, 66, 0.5)';
+            }
+
+            update(mouseX, mouseY) {
+                const dx = mouseX - this.baseX;
+                const dy = mouseY - this.baseY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < radius) {
+                    const ratio = 1 - (distance / radius);
+                    this.size = 1.5 + (4.5 * ratio);
+                    this.alpha = 0.3 + (0.7 * ratio);
+                    this.color = `rgba(255, 255, 255, ${this.alpha})`;
+                    
+                    // Draw Line
+                    ctx.beginPath();
+                    ctx.moveTo(mouseX, mouseY);
+                    ctx.lineTo(this.baseX, this.baseY);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${ratio * 0.15})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                } else {
+                    this.size = 1.5;
+                    this.color = 'rgba(61, 61, 66, 0.5)';
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.baseX, this.baseY, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            resize();
+            animate();
+        }
+
+        function resize() {
+            const container = canvas.parentElement;
+            width = container.clientWidth;
+            height = container.clientHeight;
+            
+            // Handle high DPI screens
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+
+            dots = [];
+            for (let x = spacing / 2; x < width; x += spacing) {
+                for (let y = spacing / 2; y < height; y += spacing) {
+                    dots.push(new Dot(x, y));
+                }
+            }
+            nodeCountDisplay.innerText = dots.length;
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            dots.forEach(dot => {
+                dot.update(mouse.x, mouse.y);
+                dot.draw();
+            });
+
+            // Draw Mouse Source
+            if (mouse.active) {
+                const gradient = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 15);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Core dot
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+            mouse.active = true;
+            coordsDisplay.innerText = `${Math.floor(mouse.x)},${Math.floor(mouse.y)}`;
+        });
+
+        window.addEventListener('mouseleave', () => {
+            mouse.x = -1000;
+            mouse.y = -1000;
+            mouse.active = false;
+        });
+
+        window.addEventListener('resize', resize);
+
+        init();
+    </script>
+</body>
+</html>

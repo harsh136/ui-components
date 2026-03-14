@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Vitreous Mascot System</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@300&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --glass-border: rgba(255, 255, 255, 0.15);
+                --caustic-primary: rgba(0, 240, 255, 0.4);
+                --caustic-secondary: rgba(180, 0, 255, 0.3);
+            }
+
+            body {
+                background: radial-gradient(
+                    circle at 50% 50%,
+                    #1a1a2e 0%,
+                    #0a0a0c 100%
+                );
+                font-family: "Space Grotesk", sans-serif;
+                color: #e2e8f0;
+            }
+
+            .vitreous-container {
+                perspective: 1000px;
+            }
+
+            /* The main glass body */
+            .glass-shell {
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.05) 0%,
+                    rgba(255, 255, 255, 0.01) 100%
+                );
+                backdrop-filter: blur(20px) saturate(180%);
+                border: 1px solid var(--glass-border);
+                box-shadow:
+                    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                    inset 0 0 40px rgba(255, 255, 255, 0.05),
+                    inset 0 2px 2px rgba(255, 255, 255, 0.2);
+                transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            }
+
+            /* Caustic Light Pattern Animation */
+            .caustics {
+                position: absolute;
+                inset: 0;
+                overflow: hidden;
+                opacity: 0.4;
+                pointer-events: none;
+                mix-blend-mode: screen;
+            }
+
+            .caustics::before {
+                content: "";
+                position: absolute;
+                inset: -100%;
+                background: url('data:image/svg+xml;filter=url(%23caustic-filter),<svg xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="none"/></svg>');
+                animation: caustic-drift 15s infinite linear;
+            }
+
+            @keyframes caustic-drift {
+                from {
+                    transform: rotate(0deg) scale(1.5);
+                }
+                to {
+                    transform: rotate(360deg) scale(1.5);
+                }
+            }
+
+            /* Eye styling with refraction-like glow */
+            .eye-refractor {
+                filter: blur(1px);
+                transition:
+                    transform 0.1s ease-out,
+                    height 0.15s ease-in-out;
+                background: linear-gradient(180deg, #fff 0%, #00f0ff 100%);
+                box-shadow:
+                    0 0 20px rgba(0, 240, 255, 0.5),
+                    0 0 40px rgba(0, 240, 255, 0.2);
+            }
+
+            .is-sleeping .eye-refractor {
+                height: 4px !important;
+                background: rgba(255, 255, 255, 0.2);
+                box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+            }
+
+            /* Chromatic Aberration Hit Effect */
+            @keyframes hit-flash {
+                0% {
+                    filter: blur(0px) brightness(1);
+                }
+                20% {
+                    filter: blur(4px) brightness(2) contrast(1.5);
+                    transform: scale(0.95) translateX(-5px);
+                }
+                40% {
+                    transform: translateX(5px);
+                }
+                100% {
+                    filter: blur(0px) brightness(1);
+                    transform: scale(1) translateX(0);
+                }
+            }
+            .is-hit {
+                animation: hit-flash 0.4s ease-out;
+            }
+
+            .scanline {
+                width: 100%;
+                height: 100px;
+                z-index: 5;
+                background: linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0) 0%,
+                    rgba(255, 255, 255, 0.02) 50%,
+                    rgba(0, 0, 0, 0) 100%
+                );
+                position: absolute;
+                bottom: -100px;
+                animation: scan 4s linear infinite;
+            }
+
+            @keyframes scan {
+                0% {
+                    bottom: -100px;
+                }
+                100% {
+                    bottom: 100%;
+                }
+            }
+
+            .data-label {
+                font-family: "JetBrains Mono", monospace;
+                font-size: 10px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                opacity: 0.5;
+            }
+
+            .glare {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 100%;
+                background: linear-gradient(
+                    125deg,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    rgba(255, 255, 255, 0) 40%,
+                    rgba(255, 255, 255, 0.05) 60%,
+                    rgba(255, 255, 255, 0) 100%
+                );
+                pointer-events: none;
+            }
+        </style>
+    </head>
+    <body
+        class="min-h-screen flex flex-col items-center justify-center p-8 overflow-hidden"
+    >
+        <!-- SVG Filters for Caustics -->
+        <svg style="display: none">
+            <filter id="caustic-filter">
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.015"
+                    numOctaves="3"
+                    seed="2"
+                />
+                <feDisplacementMap in="SourceGraphic" scale="30" />
+            </filter>
+        </svg>
+
+        <!-- Header Info -->
+        <div class="absolute top-12 left-12 space-y-1">
+            <p class="data-label text-cyan-400">System Core / Vitreous</p>
+            <h1 class="text-3xl font-light tracking-tighter uppercase">
+                Mascot<span class="font-bold">01</span>
+            </h1>
+        </div>
+
+        <div class="vitreous-container relative group">
+            <!-- Main Unit -->
+            <div
+                id="unit"
+                class="glass-shell relative w-96 h-96 rounded-[4rem] cursor-pointer overflow-hidden flex flex-col items-center justify-center"
+            >
+                <div class="caustics"></div>
+                <div class="glare"></div>
+                <div class="scanline"></div>
+
+                <!-- Internal Components Visualization -->
+                <div
+                    class="absolute inset-8 border border-white/5 rounded-[3rem] pointer-events-none"
+                ></div>
+
+                <!-- Face Area -->
+                <div
+                    id="face-mount"
+                    class="relative z-20 flex gap-14 items-center justify-center"
+                >
+                    <!-- Left Eye -->
+                    <div
+                        id="eye-l"
+                        class="eye-refractor w-6 h-24 rounded-full"
+                    ></div>
+                    <!-- Right Eye -->
+                    <div
+                        id="eye-r"
+                        class="eye-refractor w-6 h-24 rounded-full"
+                    ></div>
+                </div>
+
+                <!-- Terminal Decal -->
+                <div class="absolute bottom-10 flex flex-col items-center">
+                    <div class="flex gap-2 mb-2">
+                        <span
+                            class="w-1 h-1 rounded-full bg-cyan-400 animate-pulse"
+                        ></span>
+                        <span
+                            class="w-1 h-1 rounded-full bg-cyan-400 animate-pulse"
+                            style="animation-delay: 0.2s"
+                        ></span>
+                        <span
+                            class="w-1 h-1 rounded-full bg-cyan-400 animate-pulse"
+                            style="animation-delay: 0.4s"
+                        ></span>
+                    </div>
+                    <div class="data-label" id="status-text">
+                        Status: Operational
+                    </div>
+                </div>
+            </div>
+
+            <!-- Float Base -->
+            <div
+                class="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-2 bg-cyan-500/20 blur-xl rounded-full"
+            ></div>
+        </div>
+
+        <!-- Right Sidebar Info -->
+        <div class="absolute bottom-12 right-12 text-right space-y-4">
+            <div class="space-y-1">
+                <p class="data-label">Refraction Index</p>
+                <p class="text-xl font-light">1.458 η</p>
+            </div>
+            <div class="space-y-1">
+                <p class="data-label">Light Interaction</p>
+                <p class="text-xl font-light" id="interaction-coord">
+                    X: 0.00 Y: 0.00
+                </p>
+            </div>
+        </div>
+
+        <script>
+            const unit = document.getElementById("unit");
+            const eyeL = document.getElementById("eye-l");
+            const eyeR = document.getElementById("eye-r");
+            const statusText = document.getElementById("status-text");
+            const coordText = document.getElementById("interaction-coord");
+
+            let isSleeping = false;
+            let isHit = false;
+            let idleTimer;
+
+            // Interaction state
+            const state = {
+                mouseX: 0,
+                mouseY: 0,
+                currentX: 0,
+                currentY: 0,
+                lerp: 0.15,
+            };
+
+            // Initialize Audio Context (Standardized)
+            const AudioContext =
+                window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+
+            function playSynth(freq, type, duration, vol) {
+                if (audioCtx.state === "suspended") audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(
+                    freq / 2,
+                    audioCtx.currentTime + duration,
+                );
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(
+                    0,
+                    audioCtx.currentTime + duration,
+                );
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            }
+
+            function updateEyes() {
+                if (isSleeping) return;
+
+                // Smooth interpolation
+                state.currentX += (state.mouseX - state.currentX) * state.lerp;
+                state.currentY += (state.mouseY - state.currentY) * state.lerp;
+
+                // Refraction effect (eyes move less than the tilt of the head)
+                const tx = state.currentX * 15;
+                const ty = state.currentY * 15;
+                const tiltX = state.currentY * -10;
+                const tiltY = state.currentX * 10;
+
+                eyeL.style.transform = `translate(${tx}px, ${ty}px)`;
+                eyeR.style.transform = `translate(${tx}px, ${ty}px)`;
+                unit.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+
+                requestAnimationFrame(updateEyes);
+            }
+
+            function setStatus(msg) {
+                statusText.textContent = `Status: ${msg}`;
+            }
+
+            function wakeUp() {
+                if (!isSleeping) return;
+                isSleeping = false;
+                unit.classList.remove("is-sleeping");
+                setStatus("Operational");
+                playSynth(880, "sine", 0.2, 0.1);
+                resetIdleTimer();
+                requestAnimationFrame(updateEyes);
+            }
+
+            function sleep() {
+                isSleeping = true;
+                unit.classList.add("is-sleeping");
+                setStatus("Standby");
+                playSynth(220, "triangle", 0.5, 0.05);
+                unit.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                eyeL.style.transform = `translate(0, 10px)`;
+                eyeR.style.transform = `translate(0, 10px)`;
+            }
+
+            function resetIdleTimer() {
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(sleep, 8000);
+            }
+
+            window.addEventListener("mousemove", (e) => {
+                const x = (e.clientX / window.innerWidth) * 2 - 1;
+                const y = (e.clientY / window.innerHeight) * 2 - 1;
+                state.mouseX = x;
+                state.mouseY = y;
+
+                coordText.textContent = `X: ${x.toFixed(2)} Y: ${y.toFixed(2)}`;
+
+                if (isSleeping) {
+                    // Wake up on major movement
+                    if (Math.abs(x) > 0.5 || Math.abs(y) > 0.5) wakeUp();
+                } else {
+                    resetIdleTimer();
+                }
+            });
+
+            unit.addEventListener("click", () => {
+                if (isSleeping) {
+                    wakeUp();
+                    return;
+                }
+
+                if (isHit) return;
+                isHit = true;
+                unit.classList.add("is-hit");
+                playSynth(150, "square", 0.1, 0.1);
+                setStatus("Interrupted");
+
+                setTimeout(() => {
+                    unit.classList.remove("is-hit");
+                    isHit = false;
+                    setStatus("Operational");
+                }, 400);
+
+                resetIdleTimer();
+            });
+
+            // Periodic Blink Logic
+            function blink() {
+                if (!isSleeping && !isHit) {
+                    eyeL.style.height = "4px";
+                    eyeR.style.height = "4px";
+                    setTimeout(() => {
+                        if (!isSleeping) {
+                            eyeL.style.height = "96px";
+                            eyeR.style.height = "96px";
+                        }
+                    }, 100);
+                }
+                setTimeout(blink, Math.random() * 4000 + 2000);
+            }
+
+            // Start systems
+            resetIdleTimer();
+            blink();
+            requestAnimationFrame(updateEyes);
+        </script>
+    </body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SINGLEFOLIO // GALVANIZED WIREFRAME</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --zinc-50: #fafafa;
+            --zinc-400: #a1a1aa;
+            --zinc-900: #09090b;
+            --galvanized-steel: #bec2c5;
+            --accent: #00ffca;
+            --tension-line: rgba(255, 255, 255, 0.1);
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --bezier: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: crosshair;
+        }
+
+        body {
+            background-color: var(--zinc-900);
+            color: var(--zinc-50);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Materiality: Galvanized Grain Filter */
+        .galvanized-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.04;
+            mix-blend-mode: overlay;
+        }
+
+        /* Structural Wireframe Grid */
+        .wireframe-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--tension-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--tension-line) 1px, transparent 1px);
+            background-size: 100px 100px;
+            z-index: -1;
+        }
+
+        .wireframe-bg::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, var(--zinc-900) 80%);
+        }
+
+        /* Tension Elements (Anchors) */
+        .weld {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border: 1px solid var(--accent);
+            background: var(--zinc-900);
+            z-index: 10;
+        }
+
+        .weld-tl { top: -4px; left: -4px; }
+        .weld-tr { top: -4px; right: -4px; }
+        .weld-bl { bottom: -4px; left: -4px; }
+        .weld-br { bottom: -4px; right: -4px; }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            mix-blend-mode: difference;
+        }
+
+        .logo {
+            font-family: var(--font-mono);
+            font-weight: 800;
+            letter-spacing: -1px;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        /* Layout Architecture */
+        main {
+            padding: 10rem 2rem 5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            position: relative;
+            padding: 4rem;
+            border: 1px solid var(--tension-line);
+            margin-bottom: 8rem;
+            animation: slideIn 1.2s var(--bezier);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 10vw, 8rem);
+            line-height: 0.85;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            margin-bottom: 2rem;
+        }
+
+        .hero-meta {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--tension-line);
+            padding-top: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--zinc-400);
+        }
+
+        /* Tensioned Project List */
+        .folio-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+        }
+
+        .project-row {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            align-items: end;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--tension-line);
+            transition: all 0.4s var(--bezier);
+            position: relative;
+        }
+
+        .project-row:hover {
+            border-color: var(--accent);
+            padding-left: 1rem;
+        }
+
+        .project-id {
+            grid-column: span 1;
+            font-family: var(--font-mono);
+            color: var(--zinc-400);
+        }
+
+        .project-title {
+            grid-column: span 6;
+            font-size: 2.5rem;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .project-row:hover .project-title {
+            color: var(--accent);
+        }
+
+        .project-tags {
+            grid-column: span 3;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--zinc-400);
+        }
+
+        .project-cta {
+            grid-column: span 2;
+            text-align: right;
+            font-size: 1.5rem;
+        }
+
+        /* Hover Tension Preview (JS Driven Positioning) */
+        #tension-preview {
+            position: fixed;
+            width: 300px;
+            height: 400px;
+            background: var(--galvanized-steel);
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.3s, transform 0.3s var(--bezier);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .preview-inner {
+            width: 90%;
+            height: 90%;
+            border: 1px solid var(--zinc-900);
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 0.5rem;
+        }
+
+        .preview-bar {
+            height: 4px;
+            background: var(--zinc-900);
+            width: 100%;
+        }
+
+        /* Footer Tension */
+        footer {
+            margin-top: 10rem;
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--accent);
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+        }
+
+        .status-pulse {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 4rem; }
+            .project-title { font-size: 1.5rem; grid-column: span 8; }
+            .project-tags, .project-id { display: none; }
+            .project-cta { grid-column: span 4; }
+        }
+    </style>
+</head>
+<body>
+
+    <svg class="galvanized-overlay">
+        <filter id="noise">
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" />
+            <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noise)" />
+    </svg>
+
+    <div class="wireframe-bg"></div>
+
+    <nav>
+        <div class="logo">FLASH_UI / SINGLEFOLIO</div>
+        <div class="nav-links">
+            <span>[01] Index</span>
+            <span>[02] Archive</span>
+            <span>[03] Contact</span>
+        </div>
+    </nav>
+
+    <div id="tension-preview">
+        <div class="preview-inner">
+            <div class="preview-bar" style="width: 40%"></div>
+            <div class="preview-bar" style="width: 100%"></div>
+            <div class="preview-bar" style="width: 70%"></div>
+            <div style="flex-grow: 1; border: 1px solid var(--zinc-900); margin-top: 10px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; color: #000;">
+                STRUCTURAL_VIEW.EXE
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <section class="hero">
+            <div class="weld weld-tl"></div>
+            <div class="weld weld-tr"></div>
+            <div class="weld weld-bl"></div>
+            <div class="weld weld-br"></div>
+            
+            <h1 class="hero-title">Bending<br>Digital<br>Steel.</h1>
+            
+            <div class="hero-meta">
+                <div>(BASED_IN) LONDON, UK</div>
+                <div>(SPECIALTY) INTERACTIVE_WIRE_SYSTEMS</div>
+                <div>(EST) 2024.V1</div>
+            </div>
+        </section>
+
+        <section class="folio-grid">
+            <div class="project-row" data-preview="A">
+                <span class="project-id">01</span>
+                <span class="project-title">KINETIC MESH</span>
+                <span class="project-tags">Webgl / Architecture</span>
+                <span class="project-cta">→</span>
+            </div>
+
+            <div class="project-row" data-preview="B">
+                <span class="project-id">02</span>
+                <span class="project-title">TENSION LABS</span>
+                <span class="project-tags">Branding / Identity</span>
+                <span class="project-cta">→</span>
+            </div>
+
+            <div class="project-row" data-preview="C">
+                <span class="project-id">03</span>
+                <span class="project-title">ZINC CORE UI</span>
+                <span class="project-tags">Design System</span>
+                <span class="project-cta">→</span>
+            </div>
+
+            <div class="project-row" data-preview="D">
+                <span class="project-id">04</span>
+                <span class="project-title">FLUX RIGGING</span>
+                <span class="project-tags">Motion / R&D</span>
+                <span class="project-cta">→</span>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div>
+            <span class="status-pulse"></span>
+            SYSTEMS NOMINAL // ALL ENGINES ACTIVE
+        </div>
+        <div>
+            &copy; 2024 FLASH_UI. BUILT ON THE WIRE.
+        </div>
+    </footer>
+
+    <script>
+        const preview = document.getElementById('tension-preview');
+        const rows = document.querySelectorAll('.project-row');
+
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            // Lagging tension effect
+            setTimeout(() => {
+                preview.style.left = `${x + 20}px`;
+                preview.style.top = `${y + 20}px`;
+            }, 50);
+        });
+
+        rows.forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                preview.style.opacity = '1';
+                preview.style.transform = 'scale(1) rotate(-2deg)';
+            });
+            row.addEventListener('mouseleave', () => {
+                preview.style.opacity = '0';
+                preview.style.transform = 'scale(0.8) rotate(0deg)';
+            });
+        });
+
+        // Entrance animation logic
+        document.querySelectorAll('.project-row').forEach((row, index) => {
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                row.style.transition = 'all 0.8s var(--bezier)';
+                row.style.opacity = '1';
+                row.style.transform = 'translateY(0)';
+            }, 500 + (index * 100));
+        });
+    </script>
+</body>
+</html>
+

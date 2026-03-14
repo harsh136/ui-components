@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --obsidian: #08080a;
+            --glass-edge: rgba(255, 255, 255, 0.12);
+            --luminescence: #7000ff;
+            --secondary-glow: #00d4ff;
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            background-color: #030303;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1200px;
+            overflow: hidden;
+        }
+
+        .scene {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* The Card - Vitreous Obsidian Material */
+        .card {
+            position: relative;
+            width: 420px;
+            height: 560px;
+            background: linear-gradient(165deg, #111115 0%, #050505 100%);
+            border-radius: 24px;
+            border: 1px solid var(--glass-edge);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) rotateX(4deg);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 
+                0 40px 80px -15px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(112, 0, 255, 0.15),
+                inset 0 1px 2px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Glass Reflection Overlay */
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                125deg, 
+                transparent 40%, 
+                rgba(255, 255, 255, 0.03) 45%, 
+                rgba(255, 255, 255, 0.08) 50%, 
+                rgba(255, 255, 255, 0.03) 55%, 
+                transparent 60%
+            );
+            transform: translateX(-100%);
+            transition: transform 0.8s ease;
+            pointer-events: none;
+        }
+
+        .card:hover::after {
+            transform: translateX(100%);
+        }
+
+        /* Shooting Star Canvas */
+        .star-field {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+        }
+
+        .star {
+            position: absolute;
+            top: var(--top);
+            left: var(--left);
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            filter: drop-shadow(0 0 6px #fff);
+            animation: shooting-star var(--duration) var(--delay) infinite linear;
+        }
+
+        .star::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: var(--tail-length);
+            height: 1px;
+            background: linear-gradient(90deg, #fff, transparent);
+            left: 2px;
+        }
+
+        @keyframes shooting-star {
+            0% {
+                transform: translateX(0) translateY(0) rotate(-35deg) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateX(0) translateY(0) rotate(-35deg) scale(1);
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-400px) translateY(280px) rotate(-35deg) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Content Styles */
+        .content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .meta {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--secondary-glow);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .meta::before {
+            content: '';
+            width: 30px;
+            height: 1px;
+            background: var(--secondary-glow);
+        }
+
+        .title {
+            font-family: var(--font-main);
+            font-weight: 800;
+            font-size: 42px;
+            line-height: 1.1;
+            color: #ffffff;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .description {
+            font-family: var(--font-main);
+            font-weight: 300;
+            font-size: 16px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 24px;
+            max-width: 80%;
+        }
+
+        .footer {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .data-point {
+            font-family: var(--font-mono);
+        }
+
+        .data-label {
+            display: block;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .data-value {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .orb {
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, var(--luminescence) 0%, transparent 70%);
+            filter: blur(40px);
+            opacity: 0.2;
+            transition: opacity 0.6s ease;
+        }
+
+        .card:hover .orb {
+            opacity: 0.4;
+        }
+
+        /* Scroll Reveal Animation */
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content > * {
+            animation: reveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .title { animation-delay: 0.1s; }
+        .description { animation-delay: 0.2s; }
+        .footer { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+
+    <div class="scene">
+        <div class="card">
+            <!-- Background Layer -->
+            <div class="star-field">
+                <div class="star" style="--top: 10%; --left: 90%; --duration: 3s; --delay: 0s; --tail-length: 120px;"></div>
+                <div class="star" style="--top: 30%; --left: 80%; --duration: 4.5s; --delay: 1.2s; --tail-length: 180px;"></div>
+                <div class="star" style="--top: -10%; --left: 60%; --duration: 2.5s; --delay: 0.5s; --tail-length: 100px;"></div>
+                <div class="star" style="--top: 50%; --left: 100%; --duration: 5s; --delay: 2s; --tail-length: 150px;"></div>
+                <div class="star" style="--top: 20%; --left: 110%; --duration: 3.5s; --delay: 4s; --tail-length: 200px;"></div>
+            </div>
+
+            <div class="orb"></div>
+
+            <!-- Content Layer -->
+            <div class="content">
+                <header>
+                    <div class="meta">System.Active</div>
+                    <h1 class="title">Celestial<br>Architect</h1>
+                    <p class="description">
+                        Harness the velocity of light within a compressed obsidian frame. Engineered for the next epoch of digital interaction.
+                    </p>
+                </header>
+
+                <footer class="footer">
+                    <div class="data-point">
+                        <span class="data-label">Velocity</span>
+                        <span class="data-value">299,792 km/s</span>
+                    </div>
+                    <div class="data-point">
+                        <span class="data-label">Material</span>
+                        <span class="data-value">V-01 Obsidian</span>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple parallax movement on mouse move
+        const card = document.querySelector('.card');
+        const scene = document.querySelector('.scene');
+
+        document.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        scene.addEventListener('mouseenter', () => {
+            card.style.transition = 'none';
+        });
+
+        scene.addEventListener('mouseleave', () => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
+    </script>
+</body>
+</html>
