@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            overflow: hidden;
+        }
+        
+        .container {
+            font-size: min(10px, 2.5vw);
+            width: 40em;
+            height: 40em;
+            position: relative;
+            transform: scale(var(--scale, 1));
+            transition: transform 0.3s ease;
+        }
+        
+        .sun {
+            position: absolute;
+            width: 15em;
+            height: 15em;
+            top: 12.5em;
+            left: 12.5em;
+            background: radial-gradient(circle, #ffd200 0%, #ff9500 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 5em rgba(255, 160, 0, 0.4),
+                        0 0 10em rgba(255, 160, 0, 0.2);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        
+        .orbit {
+            position: absolute;
+            border: 0.1em dashed rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .earth-orbit {
+            top: 5em;
+            left: 5em;
+            width: 30em;
+            height: 30em;
+        }
+        
+        .moon-orbit {
+            position: absolute;
+            top: 0.3em;
+            right: 0.3em;
+            width: 8em;
+            height: 8em;
+            border: 0.1em dashed rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        
+        .earth, .moon {
+            position: absolute;
+            border-radius: 50%;
+        }
+        
+        .earth {
+            top: 5em;
+            left: 5em;
+            width: 30em;
+            height: 30em;
+            animation: orbit 36.5s linear infinite;
+        }
+        
+        .earth-body {
+            position: absolute;
+            top: 2.8em;
+            right: 2.8em;
+            width: 3em;
+            height: 3em;
+            background: radial-gradient(circle, #4b9fe1 0%, #27567d 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 1em rgba(75, 159, 225, 0.4);
+        }
+        
+        .moon {
+            top: 0;
+            right: 0;
+            width: 8em;
+            height: 8em;
+            animation: orbit 2.7s linear infinite;
+        }
+        
+        .moon-body {
+            position: absolute;
+            top: 0.8em;
+            right: 0.2em;
+            width: 1.2em;
+            height: 1.2em;
+            background: radial-gradient(circle, #d4d4d4 0%, #919191 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 0.5em rgba(255, 255, 255, 0.2);
+        }
+        
+        @keyframes orbit {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 5em rgba(255, 160, 0, 0.4),
+                           0 0 10em rgba(255, 160, 0, 0.2);
+            }
+            to {
+                box-shadow: 0 0 6em rgba(255, 160, 0, 0.6),
+                           0 0 12em rgba(255, 160, 0, 0.3);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                --scale: 0.8;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                --scale: 0.6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sun"></div>
+        <div class="orbit earth-orbit"></div>
+        <div class="earth">
+            <div class="earth-body"></div>
+            <div class="orbit moon-orbit"></div>
+            <div class="moon">
+                <div class="moon-body"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
