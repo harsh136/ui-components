@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Launch Animation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
+            cursor: none;
+        }
+
+        .container {
+            position: relative;
+            width: 85vw;
+            height: 85vh;
+            background-color: #000;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border-radius: 50px;
+        }
+
+        .custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            z-index: 2;
+            mix-blend-mode: difference;
+        }
+
+        #launchButton {
+            padding: 30px 60px;
+            border: 4px solid white;
+            background-color: transparent;
+            color: white;
+            border-radius: 40px;
+            cursor: none;
+            transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+            font-size: 1.6em;
+            font-weight: bolder;
+            letter-spacing: 0.5px;
+            z-index: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #launchButton span {
+            display: inline-block;
+            pointer-events: none;
+            transition: transform 0.1s linear;
+        }
+
+
+        #launchButton.hovered {
+            color: black;
+            border-color: black;
+            background-color: white;
+        }
+
+        .custom-cursor.hovered {
+            transform: translate(-50%, -50%) scale(4);
+        }
+
+
+        #rockets-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .rocket {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            color: white;
+            opacity: 0;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        .rocket svg {
+             width: 100%;
+             height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="custom-cursor"></div>
+        <button id="launchButton"><span>ready to launch?</span></button>
+        <div id="rockets-container"></div>
+    </div>
+    <script>
+        const launchButton = document.getElementById('launchButton');
+        const buttonTextSpan = launchButton.querySelector('span');
+        const customCursor = document.querySelector('.custom-cursor');
+        const container = document.querySelector('.container');
+        const rocketsContainer = document.getElementById('rockets-container');
+
+        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5018 20.0048C14.8432 21.5841 13.5794 22.848 12 23.5066C10.4206 22.848 9.15679 21.5841 8.49816 20.0048H10.7575C11.0838 20.4934 11.5051 20.9171 12 21.248C12.4949 20.9171 12.9162 20.4934 13.2425 20.0048H15.5018ZM18 14.8095L20 17.0777V19.0048H4V17.0777L6 14.8095V9.00478C6 5.52153 8.50442 2.55822 12 1.45999C15.4956 2.55822 18 5.52153 18 9.00478V14.8095ZM17.2692 17.0048L16 15.5653V9.00478C16 6.68694 14.4292 4.57431 12 3.58384C9.57078 4.57431 8 6.68694 8 9.00478V15.5653L6.73076 17.0048H17.2692ZM12 11.0048C10.8954 11.0048 10 10.1093 10 9.00478C10 7.90021 10.8954 7.00478 12 7.00478C13.1046 7.00478 14 7.90021 14 9.00478C14 10.1093 13.1046 11.0048 12 11.0048Z"></path></svg>`;
+
+
+        let isHovered = false;
+        let rocketInterval;
+
+        let cursorX = 0;
+        let cursorY = 0;
+        let targetX = 0;
+        let targetY = 0;
+        const cursorSpeed = 0.15;
+
+        function smoothCursor() {
+            const dx = targetX - cursorX;
+            const dy = targetY - cursorY;
+
+            cursorX += dx * cursorSpeed;
+            cursorY += dy * cursorSpeed;
+
+            const currentScale = customCursor.classList.contains('hovered') ? 4 : 1;
+            customCursor.style.transform = `translate(${cursorX - targetX -10}px, ${cursorY-targetY -10}px) scale(${currentScale})`;
+             customCursor.style.left = cursorX + 'px';
+            customCursor.style.top = cursorY + 'px';
+
+            requestAnimationFrame(smoothCursor);
+        }
+        smoothCursor();
+
+        document.addEventListener('mousemove', (e) => {
+            targetX = e.clientX;
+            targetY = e.clientY;
+        });
+
+        const animateButtonText = function (e) {
+            const span = buttonTextSpan;
+
+            const { offsetX: x, offsetY: y } = e;
+            const { offsetWidth: width, offsetHeight: height } = e.target;
+
+            const move = 15;
+            const xMove = (x / width) * (move * 2) - move;
+            const yMove = (y / height) * (move * 2) - move;
+
+            span.style.transform = `translate(${xMove}px, ${yMove}px)`;
+
+            if (e.type === 'mouseleave') {
+                span.style.transform = '';
+            }
+      };
+
+
+        launchButton.addEventListener('mouseover', () => {
+            isHovered = true;
+            launchButton.classList.add('hovered');
+            customCursor.classList.add('hovered');
+            createRockets();
+            rocketInterval = setInterval(createRockets, 500);
+        });
+
+        launchButton.addEventListener('mouseout', () => {
+            isHovered = false;
+            launchButton.classList.remove('hovered');
+            customCursor.classList.remove('hovered');
+            clearInterval(rocketInterval);
+            buttonTextSpan.style.transform = '';
+        });
+
+
+        launchButton.addEventListener('mousemove', animateButtonText);
+        launchButton.addEventListener('mouseleave', animateButtonText);
+
+        // --- ADDED CODE START ---
+        launchButton.addEventListener('click', () => {
+            const element = document.documentElement; // Target the whole HTML document
+
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) { // Firefox
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) { // Chrome, Safari, Opera
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { // IE/Edge
+                element.msRequestFullscreen();
+            }
+        });
+        // --- ADDED CODE END ---
+
+
+        function createRockets() {
+            const numRockets = 2;
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            const padding = 90;
+
+            for (let i = 0; i < numRockets; i++) {
+
+                const rocketContainer = document.createElement('div');
+                rocketContainer.classList.add('rocket');
+                rocketContainer.innerHTML = svgIcon;
+
+                const x = Math.random() * containerWidth;
+                const startYOffset = containerHeight + padding;
+
+                rocketContainer.style.left = x + 'px';
+                rocketContainer.style.top = startYOffset + 'px';
+
+                rocketsContainer.appendChild(rocketContainer);
+
+                gsap.fromTo(rocketContainer,
+                    {
+                        yPercent: 0,
+                        scale: 0.5,
+                        opacity: 0
+                    },
+                    {
+                        yPercent: - ( (containerHeight + padding * 2 + (20 * window.innerHeight / 100)) / 40 * 100),
+                        scale: 0.8,
+                        opacity: 1,
+                        duration: 3.5,
+                        ease: "power1.inOut",
+                        onComplete: () => {
+                            rocketContainer.remove();
+                        }
+                    }
+                );
+            }
+        }
+
+    </script>
+</body>
+</html>
