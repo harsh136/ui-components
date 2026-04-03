@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rose Orbit | Velvety Pigment Oscillation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;800&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0909;
+            --pigment-primary: #ff2d55;
+            --pigment-secondary: #5e1120;
+            --velvet-depth: #1a0a0d;
+            --text-main: #fcfaf1;
+            --text-muted: rgba(252, 250, 241, 0.4);
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* The Velvety Texture Overlay */
+        .canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, var(--velvet-depth) 0%, var(--bg) 100%);
+            overflow: hidden;
+        }
+
+        .canvas-container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: 0.15;
+            pointer-events: none;
+            filter: url(#grainy);
+            z-index: 2;
+        }
+
+        /* UI Elements */
+        .ui-overlay {
+            position: absolute;
+            inset: 0;
+            padding: 3rem;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .title-group h1 {
+            font-weight: 800;
+            font-size: 3rem;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            line-height: 0.9;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to bottom, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--pigment-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+        }
+
+        .metrics {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-align: right;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .metric-label { color: var(--text-muted); text-transform: uppercase; }
+        .metric-value { color: var(--text-main); font-weight: 500; }
+
+        .formula-card {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 320px;
+        }
+
+        .formula-card code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            display: block;
+            color: var(--text-muted);
+        }
+
+        .formula-card code span {
+            color: var(--text-main);
+        }
+
+        /* SVG Visualization */
+        #stage {
+            width: 85vh;
+            height: 85vh;
+            transform: rotate(0deg);
+            filter: drop-shadow(0 0 30px rgba(255, 45, 85, 0.2));
+        }
+
+        .curve-path {
+            fill: none;
+            stroke-width: 0.8;
+            stroke-linecap: round;
+            mix-blend-mode: screen;
+        }
+
+        .particle {
+            fill: var(--pigment-primary);
+            filter: blur(2px);
+        }
+
+        svg filter {
+            color-interpolation-filters: sRGB;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="canvas-container">
+        <div class="ui-overlay">
+            <div class="header">
+                <div class="title-group">
+                    <div class="tagline">Parametric Oscillation</div>
+                    <h1>Rose<br>Orbit</h1>
+                </div>
+                <div class="metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Frequency</span>
+                        <span class="metric-value">7.000 Hz</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Petals</span>
+                        <span class="metric-value">7.0</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Resolution</span>
+                        <span class="metric-value">72 Particles</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="formula-card">
+                <code>
+                    r(t) = 7.0 - 2.7s cos(7t)<br>
+                    <span>x = 50 + cos t · r(t) · 3.9</span><br>
+                    <span>y = 50 + sin t · r(t) · 3.9</span>
+                </code>
+            </div>
+        </div>
+
+        <svg id="stage" viewBox="0 0 100 100">
+            <defs>
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                
+                <filter id="grainy">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+                    <feColorMatrix type="saturate" values="0"/>
+                </filter>
+
+                <linearGradient id="curveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ff2d55" stop-opacity="0.8" />
+                    <stop offset="50%" stop-color="#800e13" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="#ff2d55" stop-opacity="0" />
+                </linearGradient>
+            </defs>
+
+            <!-- Main Curve Structure -->
+            <path id="rosePath" class="curve-path" stroke="url(#curveGrad)" d="" />
+            <g id="particleGroup"></g>
+        </svg>
+    </div>
+
+    <!-- Hidden Filter Container -->
+    <svg style="position: absolute; width: 0; height: 0;">
+        <filter id="grainy">
+            <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" />
+            <feComposite operator="in" in2="SourceGraphic" />
+        </filter>
+    </svg>
+
+    <script>
+        const config = {
+            name: "Rose Orbit",
+            tag: "r = cos(kθ)",
+            rotate: true,
+            particleCount: 72,
+            trailSpan: 0.42,
+            durationMs: 5200,
+            rotationDurationMs: 28000,
+            pulseDurationMs: 4600,
+            strokeWidth: 5.2,
+            orbitRadius: 7,
+            detailAmplitude: 2.7,
+            petalCount: 7,
+            curveScale: 3.9,
+        };
+
+        const pathEl = document.getElementById('rosePath');
+        const particleGroup = document.getElementById('particleGroup');
+        const stage = document.getElementById('stage');
+
+        function point(progress, detailScale, cfg) {
+            const t = progress * Math.PI * 2;
+            const k = Math.round(cfg.petalCount);
+            const r = cfg.orbitRadius - cfg.detailAmplitude * detailScale * Math.cos(k * t);
+            return {
+                x: 50 + Math.cos(t) * r * cfg.curveScale,
+                y: 50 + Math.sin(t) * r * cfg.curveScale,
+            };
+        }
+
+        // Initialize particles
+        const particles = [];
+        for (let i = 0; i < config.particleCount; i++) {
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("r", "0.25");
+            circle.setAttribute("class", "particle");
+            particleGroup.appendChild(circle);
+            particles.push({
+                el: circle,
+                offset: i / config.particleCount
+            });
+        }
+
+        function update(time) {
+            // Oscillation of the 's' parameter (detailScale)
+            const detailScale = Math.sin(time / config.pulseDurationMs * Math.PI * 2) * 0.5 + 0.5;
+            
+            // Generate Path
+            let d = "";
+            const resolution = 200;
+            for (let i = 0; i <= resolution; i++) {
+                const p = point(i / resolution, detailScale, config);
+                d += (i === 0 ? "M" : "L") + `${p.x} ${p.y}`;
+            }
+            pathEl.setAttribute('d', d);
+
+            // Update Particles
+            particles.forEach((p, i) => {
+                const progress = (p.offset + (time / config.durationMs)) % 1;
+                const pos = point(progress, detailScale, config);
+                
+                // Dynamic Opacity based on sine wave for velvet-like fade
+                const opacity = Math.pow(Math.sin(progress * Math.PI), 2);
+                
+                p.el.setAttribute('cx', pos.x);
+                p.el.setAttribute('cy', pos.y);
+                p.el.setAttribute('fill-opacity', opacity * 0.8);
+                p.el.setAttribute('r', (0.1 + opacity * 0.3));
+            });
+
+            // Rotation
+            if (config.rotate) {
+                const rotation = (time / config.rotationDurationMs * 360) % 360;
+                stage.style.transform = `rotate(${rotation}deg)`;
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        requestAnimationFrame(update);
+
+        // Interaction
+        document.body.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 10;
+            const y = (e.clientY / window.innerHeight - 0.5) * 10;
+            stage.style.filter = `drop-shadow(${x}px ${y}px 40px rgba(255, 45, 85, 0.25))`;
+        });
+    </script>
+</body>
+</html>
