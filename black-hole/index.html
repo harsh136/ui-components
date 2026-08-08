@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Hole — Originkit</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            overflow: hidden;
+        }
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #fg-canvas {
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="bg-canvas"></canvas>
+        <canvas id="fg-canvas"></canvas>
+    </div>
+
+    <script>
+        // ─── Constants & Defaults ─────────────────────────────────
+
+        const BG = "#000000";
+        const PERSPECTIVE = 1300;
+
+        const DEFAULT_CENTRE = {
+            voidRadius: 40,
+            voidX: 50,
+            voidY: 50,
+        };
+
+        const DEFAULTS = {
+            showCenter: true,
+            centre: DEFAULT_CENTRE,
+            particleCount: 1000,
+            particleSize: 4,
+            colors: ["#ffffff"],
+            outerRadius: 70,
+            tilt: 20,
+            tiltSideway: 160,
+            trail: 50,
+            orbitSpeed: 4,
+            pullSpeed: 0,
+        };
+
+        // Merge defaults
+        const props = { ...DEFAULTS };
+
+        // ─── DOM & Context Setup ──────────────────────────────────
+
+        const containerRef = document.getElementById('container');
+        const canvasRef = document.getElementById('bg-canvas');
+        const fgCanvasRef = document.getElementById('fg-canvas');
+        const ctx = canvasRef.getContext('2d');
+        const fgCtx = fgCanvasRef.getContext('2d');
+
+        // ─── State Variables ──────────────────────────────────────
+
+        let particles = [];
+        let animRef = 0;
+        let sizeRef = { w: window.innerWidth, h: window.innerHeight };
+
+        // Props destructuring & Derived values
+        const {
+            showCenter,
+            centre,
+            particleCount,
+            particleSize: particleSizeRaw,
+            colors,
+            outerRadius,
+            tilt,
+            tiltSideway,
+            trail: trailRaw,
+            orbitSpeed,
+            pullSpeed: pullSpeedRaw,
+        } = props;
+
+        const { voidRadius: rawVoidRadius, voidX, voidY } = { ...DEFAULT_CENTRE, ...centre };
+        const voidColor = BG;
+        const perspective = PERSPECTIVE;
+
+        const particleSize = 0.5 + (Math.max(1, Math.min(50, particleSizeRaw ?? 20)) - 1) * (4 / 49);
+        const pullSpeed = Math.max(0, pullSpeedRaw ?? 1) / 2;
+        const trailAlpha = Math.max(0.02, 1 - (Math.max(0, trailRaw ?? 40) / 50) * 0.98);
+        const voidRadius = showCenter !== false ? rawVoidRadius : 1;
+
+        // ─── Helper Functions ─────────────────────────────────────
+
+        const outerRadFromSize = (w, _h) => {
+            const maxR = w / 2;
+            const pct = Math.max(0, Math.min(100, outerRadius)) / 100;
+            return voidRadius + pct * (maxR - voidRadius);
+        };
+
+        const initParticles = (count, horizonRad, outerRad, colorsLength) => {
+            const pts = [];
+            for (let i = 0; i < count; i++) {
+                const radius = horizonRad + Math.pow(Math.random(), 2) * (outerRad - horizonRad);
+                pts.push({
+                    angle: Math.random() * Math.PI * 2,
+                    radius,
+                    height: (Math.random() - 0.5) * 16,
+                    speedOffset: 0.75 + Math.random() * 0.5,
+                    colorIdx: Math.floor(Math.random() * colorsLength),
+                });
+            }
+            particles = pts;
+        };
+
+        // Hex/RGB parser
+        const hexToRgb = (colorStr) => {
+            let r = 0, g = 0, b = 0;
+            if (!colorStr) return { r, g, b };
+            if (colorStr.startsWith("#")) {
+                const hex = colorStr.replace("#", "");
+                if (hex.length === 3) {
+                    r = parseInt(hex[0] + hex[0], 16);
+                    g = parseInt(hex[1] + hex[1], 16);
+                    b = parseInt(hex[2] + hex[2], 16);
+                } else if (hex.length >= 6) {
+                    r = parseInt(hex.substring(0, 2), 16);
+                    g = parseInt(hex.substring(2, 4), 16);
+                    b = parseInt(hex.substring(4, 6), 16);
+                }
+            } else if (colorStr.startsWith("rgb")) {
+                const match = colorStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                if (match) {
+                    r = parseInt(match[1]);
+                    g = parseInt(match[2]);
+                    b = parseInt(match[3]);
+                }
+            }
+            return { r, g, b };
+        };
+
+        // ─── Resize Handling ──────────────────────────────────────
+
+        const handleResize = () => {
+            const { width, height } = containerRef.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+            
+            canvasRef.width = width * dpr;
+            canvasRef.height = height * dpr;
+            canvasRef.style.width = `${width}px`;
+            canvasRef.style.height = `${height}px`;
+            
+            fgCanvasRef.width = width * dpr;
+            fgCanvasRef.height = height * dpr;
+            fgCanvasRef.style.width = `${width}px`;
+            fgCanvasRef.style.height = `${height}px`;
+
+            const prev = sizeRef;
+            sizeRef = { w: width, h: height };
+            
+            if (prev.w !== width || prev.h !== height) {
+                initParticles(particleCount, voidRadius, outerRadFromSize(width, height), colors.length);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // ─── Animation Loop ───────────────────────────────────────
+
+        let lastTime = performance.now();
+
+        const draw = (now) => {
+            const dt = Math.min((now - lastTime) / 16.667, 3);
+            lastTime = now;
+
+            const { w, h } = sizeRef;
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            fgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            ctx.globalAlpha = 1.0;
+            fgCtx.globalAlpha = 1.0;
+
+            // Fade trails
+            ctx.globalCompositeOperation = "destination-out";
+            ctx.fillStyle = `rgba(0, 0, 0, ${trailAlpha})`;
+            ctx.fillRect(0, 0, w, h);
+            ctx.globalCompositeOperation = "source-over";
+
+            fgCtx.globalCompositeOperation = "destination-out";
+            fgCtx.fillStyle = `rgba(0, 0, 0, ${trailAlpha})`;
+            fgCtx.fillRect(0, 0, w, h);
+            fgCtx.globalCompositeOperation = "source-over";
+
+            const outerRad = outerRadFromSize(w, h);
+            const voidCx = (voidX / 100) * w;
+            const voidCy = (voidY / 100) * h;
+
+            const tiltRad = (tilt * Math.PI) / 180;
+            const tiltSidewayRad = (tiltSideway * Math.PI) / 180;
+
+            const backgroundParticles = [];
+            const foregroundParticles = [];
+
+            for (let i = 0; i < particles.length; i++) {
+                const pt = particles[i];
+
+                const speedFactor = Math.sqrt(voidRadius / Math.max(pt.radius, 10));
+                const localOrbitSpeed = orbitSpeed * speedFactor * pt.speedOffset;
+                const localPullSpeed = pullSpeed * speedFactor * pt.speedOffset;
+
+                pt.angle += localOrbitSpeed * 0.012 * dt;
+                pt.radius -= localPullSpeed * dt;
+
+                if (pt.radius < voidRadius) {
+                    pt.radius = voidRadius + 0.7 * (outerRad - voidRadius) + Math.random() * 0.3 * (outerRad - voidRadius);
+                    pt.angle = Math.random() * Math.PI * 2;
+                    pt.height = (Math.random() - 0.5) * 16;
+                    continue;
+                }
+
+                const cosA = Math.cos(pt.angle);
+                const sinA = Math.sin(pt.angle);
+
+                const x_base = pt.radius * cosA;
+                const y_base = pt.height;
+                const z_base = pt.radius * sinA;
+
+                const x1 = x_base;
+                const y1 = y_base * Math.cos(tiltRad) + z_base * Math.sin(tiltRad);
+                const z1 = -y_base * Math.sin(tiltRad) + z_base * Math.cos(tiltRad);
+
+                const x3d = x1 * Math.cos(tiltSidewayRad) - y1 * Math.sin(tiltSidewayRad);
+                const y3d = x1 * Math.sin(tiltSidewayRad) + y1 * Math.cos(tiltSidewayRad);
+                const z3d = z1;
+
+                const scale = perspective / (perspective + z3d);
+                const px = voidCx + x3d * scale;
+                const py = voidCy + y3d * scale;
+
+                if (px < -30 || px > w + 30 || py < -30 || py > h + 30) continue;
+
+                const size = Math.max(0.3, particleSize * scale);
+                const alpha = Math.max(0.35, 1 - ((z3d + outerRad) / (2 * outerRad)) * 0.45);
+                const color = colors[pt.colorIdx % colors.length];
+
+                const projectedPt = { x: px, y: py, size, alpha, z: z3d, color };
+
+                if (z3d >= 0) {
+                    backgroundParticles.push(projectedPt);
+                } else {
+                    foregroundParticles.push(projectedPt);
+                }
+            }
+
+            backgroundParticles.sort((a, b) => b.z - a.z);
+            foregroundParticles.sort((a, b) => b.z - a.z);
+
+            // Draw Background Particles
+            for (let i = 0; i < backgroundParticles.length; i++) {
+                const pt = backgroundParticles[i];
+                ctx.globalAlpha = pt.alpha;
+                ctx.fillStyle = pt.color;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1.0;
+
+            // Draw Center Gravity Void
+            if (showCenter !== false) {
+                const voidRgb = hexToRgb(voidColor);
+                const edgeR = Math.min(255, voidRgb.r + 18);
+                const edgeG = Math.min(255, voidRgb.g + 18);
+                const edgeB = Math.min(255, voidRgb.b + 18);
+
+                const sphereGrad = ctx.createRadialGradient(
+                    voidCx - voidRadius * 0.25,
+                    voidCy - voidRadius * 0.3,
+                    voidRadius * 0.05,
+                    voidCx,
+                    voidCy,
+                    voidRadius
+                );
+                sphereGrad.addColorStop(0, `rgba(${Math.min(255, voidRgb.r + 8)}, ${Math.min(255, voidRgb.g + 8)}, ${Math.min(255, voidRgb.b + 8)}, 1)`);
+                sphereGrad.addColorStop(0.65, `rgba(${voidRgb.r}, ${voidRgb.g}, ${voidRgb.b}, 1)`);
+                sphereGrad.addColorStop(0.92, `rgba(${edgeR}, ${edgeG}, ${edgeB}, 1)`);
+                sphereGrad.addColorStop(1, `rgba(${edgeR}, ${edgeG}, ${edgeB}, 0.9)`);
+
+                ctx.globalAlpha = 1.0;
+                ctx.fillStyle = sphereGrad;
+                ctx.beginPath();
+                ctx.arc(voidCx, voidCy, voidRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                const rimGrad = ctx.createRadialGradient(
+                    voidCx,
+                    voidCy,
+                    voidRadius * 0.88,
+                    voidCx,
+                    voidCy,
+                    voidRadius * 1.02
+                );
+                rimGrad.addColorStop(0, `rgba(255, 255, 255, 0)`);
+                rimGrad.addColorStop(0.6, `rgba(180, 180, 200, 0.06)`);
+                rimGrad.addColorStop(0.85, `rgba(180, 180, 200, 0.12)`);
+                rimGrad.addColorStop(1, `rgba(180, 180, 200, 0)`);
+                
+                ctx.globalAlpha = 1.0;
+                ctx.fillStyle = rimGrad;
+                ctx.beginPath();
+                ctx.arc(voidCx, voidCy, voidRadius * 1.02, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw Foreground Particles
+            for (let i = 0; i < foregroundParticles.length; i++) {
+                const pt = foregroundParticles[i];
+                fgCtx.globalAlpha = pt.alpha;
+                fgCtx.fillStyle = pt.color;
+                fgCtx.beginPath();
+                fgCtx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+                fgCtx.fill();
+            }
+            fgCtx.globalAlpha = 1.0;
+
+            animRef = requestAnimationFrame(draw);
+        };
+
+        // ─── Initialization ───────────────────────────────────────
+        
+        handleResize(); // Initial canvas sizing and particle seeding
+        animRef = requestAnimationFrame(draw);
+
+    </script>
+</body>
+</html>
